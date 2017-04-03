@@ -1,0 +1,27 @@
+
+I entered the competition 9 days before the deadline. My original goal was to get a new Top 10% badge. When I found the leak/magic feature I realized Top 10 would be possible too.
+
+When I saw the huge gap on the LB I knew there must be some leakage. I suspected the some temporal information in the id or file order or something among the features. The id was randomly regenerated the features had low cardinality so I checked the file orders. Train/test did not help but all the others had the same order first sorted by location_id (lexicographic) and then probably by time.
+
+I mainly focused on feature engineering. The most rewarding thing was to design features to exploit the underlying temporal relationships between the disruptions.
+
+Useful Features
+
+location_number (location x -> int(x))
+location_count (count(id) group by location_id)
+ascending rank for each location
+descending rank for each location
+relative rank for each location
+feature_number (feature x -> int(x))
+event_number (feature x -> int(x))
+min, median, max (feature_number)
+before_fault_severity_k for k in 1..10 for each location
+after_fault_severity_k for k in 1..10 for each location
+moving average/count/sum fault severity for the last and next k records for each location
+diff for each features based on the previous record for that location
+diff for each features based on the next record for that location
+XGBoost was used exclusively. I have not experimented with other models. My final submission was an average of 11 selected xgbs trained with slightly different feature sets and parameters. Tried some stacking but that did work well for me.
+
+@Mike thanks for sharing! Here you can find my simplified single model solution. With the published parameters it should be reach around 0.41 on Private LB with some tuning and luck it should be possible to reach 0.405.
+
+I consider the hidden order 50% leakage and 50% magic feature. In real world scenarios you could and should use all the information about the last failures. Since the records were shuffled here you could use the future as well that is when the leakage starts :)
